@@ -40,7 +40,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "EXPO_PUBLIC_PLACES_API_KEY": "AIzaSyBkAxCKrRkaWfhIpsUK1x3Shs8SZZmgdvI"
+      "EXPO_PUBLIC_PLACES_API_KEY": 
     }
   }
 }
