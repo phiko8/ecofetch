@@ -238,16 +238,8 @@ export async function POST(request: Request) {
         ? fare
         : 0;
 
-    // Enforce floor only when a meaningful fare was calculated and the user
-    // submitted an explicit offer below it.
+    // Log fare details for diagnostics
     console.log("[jobs POST] fare:", fare, "| floorPrice:", floorPrice, "| offeredPrice:", offeredPrice, "| rawOffered:", rawOffered);
-    if (fare > 0 && rawOffered != null && rawOffered > 0 && offeredPrice < floorPrice) {
-      console.error("[jobs POST] BLOCKED — offer R" + offeredPrice + " below floor R" + floorPrice);
-      return Response.json(
-        { error: `Minimum offer is R${floorPrice.toFixed(2)}` },
-        { status: 400 }
-      );
-    }
 
     // Find all available drivers for this service type
     const serviceType = jobPurpose === "bin_cleaning" ? "bin_cleaner" : "collector";
