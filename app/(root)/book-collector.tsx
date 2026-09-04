@@ -1,7 +1,6 @@
 import CollectorLayout from "@/components/CollectorLayout";
 import CustomButton from "@/components/customButton";
 import { useBookingStore, useLocationStore } from "@/store";
-import { neon } from "@neondatabase/serverless";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -22,6 +21,32 @@ import ReactNativeModal from "react-native-modal";
 
 const GREEN = "#1AB045";
 const BLUE  = "#1E3A5F";
+
+// ── Neon HTTP helper — uses plain fetch, no Node.js deps, works in React Native
+async function neonExec(query: string, params: any[]): Promise<any[]> {
+  const dbUrl = process.env.EXPO_PUBLIC_DATABASE_URL!;
+  // Derive endpoint: ep-xxx-pooler.us-east-2.aws.neon.tech → api.us-east-2.aws.neon.tech
+  let endpoint = "https://api.us-east-2.aws.neon.tech/sql";
+  try {
+    const host = new URL(dbUrl).hostname;
+    endpoint = "https://" + host.replace(/^[^.]+\./, "api.") + "/sql";
+  } catch { /* use default */ }
+
+  const resp = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Neon-Connection-String": dbUrl,
+    },
+    body: JSON.stringify({ query, params }),
+  });
+  if (!resp.ok) {
+    const msg = await resp.text().catch(() => String(resp.status));
+    throw new Error(`DB ${resp.status}: ${msg}`);
+  }
+  const result = await resp.json();
+  return result.rows ?? [];
+}
 
 // ── Card helpers ─────────────────────────────────────────────────
 function formatCardNumber(raw: string) {
@@ -133,11 +158,9 @@ const BookCollector = () => {
         ? Math.max(Math.round(baseFare * 0.70 * 100) / 100, floorMin)
         : floorMin;
 
-      // Write directly to Neon — no server needed
-      const sql = neon(process.env.EXPO_PUBLIC_DATABASE_URL!);
-
-      const [ride] = await sql`
-        INSERT INTO rides (
+      // Write directly to Neon via HTTP — no Vercel server needed
+      const [ride] = await neonExec(
+        `INSERT INTO rides (
           driver_id, user_id, user_name,
           origin_address, destination_address,
           origin_latitude, origin_longitude,
@@ -146,39 +169,43 @@ const BookCollector = () => {
           offered_price, floor_price,
           negotiation_status, offer_expires_at,
           status, payment_status, waste_photo
-        )
-        VALUES (
-          NULL,
-          ${resolvedUserId},
-          ${uName || null},
-          ${pickupAddress},
-          ${destinationAddress || null},
-          ${userLatitude ?? null},
-          ${userLongitude ?? null},
-          ${destinationLatitude ?? null},
-          ${destinationLongitude ?? null},
-          ${offeredPriceNum},
-          ${jobPurpose},
-          ${offeredPriceNum},
-          ${floorPrice},
-          'open',
-          NOW() + INTERVAL '3 minutes',
-          'pending',
-          'unpaid',
-          ${photoToSend}
-        )
-        RETURNING ride_id
-      `;
+        ) VALUES (
+          NULL, $1, $2, $3, $4, $5, $6, $7, $8,
+          $9, $10, $9, $11,
+          'open', NOW() + INTERVAL '3 minutes',
+          'pending', 'unpaid', $12
+        ) RETURNING ride_id`,
+        [
+          resolvedUserId,
+          uName || null,
+          pickupAddress,
+          destinationAddress || null,
+          userLatitude ?? null,
+          userLongitude ?? null,
+          destinationLatitude ?? null,
+          destinationLongitude ?? null,
+          offeredPriceNum,   // $9  fare_price
+          jobPurpose,        // $10
+          floorPrice,        // $11
+          photoToSend,       // $12
+        ]
+      );
 
       const newRideId = ride?.ride_id ?? null;
 
       // Fire-and-forget extra service jobs
       if (extraPurposesList.length > 0) {
+        const base = [
+          resolvedUserId, uName || null, pickupAddress,
+          destinationAddress || null,
+          userLatitude ?? null, userLongitude ?? null,
+          destinationLatitude ?? null, destinationLongitude ?? null,
+        ];
         Promise.all(
           extraPurposesList.map((ep) => {
             const epFloor = ep === "bin_cleaning" ? 100 : ep === "recycle" ? 150 : 200;
-            return sql`
-              INSERT INTO rides (
+            return neonExec(
+              `INSERT INTO rides (
                 driver_id, user_id, user_name,
                 origin_address, destination_address,
                 origin_latitude, origin_longitude,
@@ -187,22 +214,14 @@ const BookCollector = () => {
                 offered_price, floor_price,
                 negotiation_status, offer_expires_at,
                 status, payment_status, waste_photo
-              )
-              VALUES (
-                NULL,
-                ${resolvedUserId},
-                ${uName || null},
-                ${pickupAddress},
-                ${destinationAddress || null},
-                ${userLatitude ?? null},
-                ${userLongitude ?? null},
-                ${destinationLatitude ?? null},
-                ${destinationLongitude ?? null},
-                0, ${ep}, 0, ${epFloor},
+              ) VALUES (
+                NULL, $1, $2, $3, $4, $5, $6, $7, $8,
+                0, $9, 0, $10,
                 'open', NOW() + INTERVAL '3 minutes',
                 'pending', 'unpaid', NULL
-              )
-            `.catch(() => null);
+              )`,
+              [...base, ep, epFloor]
+            ).catch(() => null);
           })
         ).catch(() => null);
       }
