@@ -185,32 +185,18 @@ export async function POST(request: Request) {
       binsCount,
       purpose,
       offeredPrice: offeredPriceParam,
-      paymentMethod,
+      paymentMethod: rawPaymentMethod,
       wastePhoto,
     } = body;
+    // Normalise payment method — never reject unknown values, default to 'cash'
+    const paymentMethod = ["card"].includes(rawPaymentMethod) ? rawPaymentMethod : "cash";
 
-    // Log exactly what was received so Vercel Function Logs can show the diagnosis
+    // Log what was received — never block on missing fields, just proceed
     console.log("[jobs POST] body keys:", Object.keys(body));
     console.log("[jobs POST] userClerkId:", userClerkId, "| purpose:", purpose, "| wasteType:", wasteType, "| offeredPrice:", offeredPriceParam, "| paymentMethod:", paymentMethod);
 
-    if (!userClerkId) {
-      console.error("[jobs POST] BLOCKED — userClerkId missing. body.userClerkId =", body.userClerkId);
-      return Response.json({ error: "Missing user session — please sign in again" }, { status: 400 });
-    }
-    // originAddress is optional — client sends GPS coords as fallback text, so we never hard-block here
-    if (paymentMethod && !["cash", "card"].includes(paymentMethod)) {
-      return Response.json({ error: "Invalid payment method" }, { status: 400 });
-    }
-
     const isBinCleaning = purpose === "bin_cleaning" || wasteType === "bin_cleaning";
-
-    if (!isBinCleaning && wasteType && !WASTE_COST_PER_TON[wasteType]) {
-      return Response.json({ error: "Invalid waste type" }, { status: 400 });
-    }
-    const wTons = Number(weightTons);
-    if (!isBinCleaning && wasteType && (isNaN(wTons) || wTons <= 0 || wTons > 20)) {
-      return Response.json({ error: "Invalid weight" }, { status: 400 });
-    }
+    const wTons = Number(weightTons) || 0;
 
     // Calculate fare server-side
     const distanceKm =
