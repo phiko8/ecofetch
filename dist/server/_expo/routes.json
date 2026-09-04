@@ -1,0 +1,262 @@
+{
+  "apiRoutes": [
+    {
+      "file": "_expo/functions/(api)/jobs+api.js",
+      "page": "/(api)/jobs",
+      "namedRegex": "^(?:/\\(api\\))?/jobs(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/user+api.js",
+      "page": "/(api)/user",
+      "namedRegex": "^(?:/\\(api\\))?/user(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/drives+api.js",
+      "page": "/(api)/drives",
+      "namedRegex": "^(?:/\\(api\\))?/drives(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/drivers+api.js",
+      "page": "/(api)/drivers",
+      "namedRegex": "^(?:/\\(api\\))?/drivers(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/add-rating+api.js",
+      "page": "/(api)/add-rating",
+      "namedRegex": "^(?:/\\(api\\))?/add\\-rating(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/db-migrate+api.js",
+      "page": "/(api)/db-migrate",
+      "namedRegex": "^(?:/\\(api\\))?/db\\-migrate(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/admin/users+api.js",
+      "page": "/(api)/admin/users",
+      "namedRegex": "^(?:/\\(api\\))?/admin/users(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/waste-sites+api.js",
+      "page": "/(api)/waste-sites",
+      "namedRegex": "^(?:/\\(api\\))?/waste\\-sites(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/(stripe)/create+api.js",
+      "page": "/(api)/(stripe)/create",
+      "namedRegex": "^(?:/\\(api\\))?(?:/\\(stripe\\))?/create(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/driver-location+api.js",
+      "page": "/(api)/driver-location",
+      "namedRegex": "^(?:/\\(api\\))?/driver\\-location(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/driver-register+api.js",
+      "page": "/(api)/driver-register",
+      "namedRegex": "^(?:/\\(api\\))?/driver\\-register(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/recycling-companies+api.js",
+      "page": "/(api)/recycling-companies",
+      "namedRegex": "^(?:/\\(api\\))?/recycling\\-companies(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "_expo/functions/(api)/Disposal/[id]+api.js",
+      "page": "/(api)/Disposal/[id]",
+      "namedRegex": "^(?:/\\(api\\))?/Disposal/(?<id>[^/]+?)(?:/)?$",
+      "routeKeys": {
+        "id": "id"
+      }
+    }
+  ],
+  "htmlRoutes": [
+    {
+      "file": "./index.tsx",
+      "page": "/index",
+      "namedRegex": "^/(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/(tabs)/home.tsx",
+      "page": "/(root)/(tabs)/home",
+      "namedRegex": "^(?:/\\(root\\))?(?:/\\(tabs\\))?/home(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/(driver-tabs)/jobs.tsx",
+      "page": "/(root)/(driver-tabs)/jobs",
+      "namedRegex": "^(?:/\\(root\\))?(?:/\\(driver\\-tabs\\))?/jobs(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/terms.tsx",
+      "page": "/(root)/terms",
+      "namedRegex": "^(?:/\\(root\\))?/terms(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/admin.tsx",
+      "page": "/(root)/admin",
+      "namedRegex": "^(?:/\\(root\\))?/admin(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/(tabs)/drives.tsx",
+      "page": "/(root)/(tabs)/drives",
+      "namedRegex": "^(?:/\\(root\\))?(?:/\\(tabs\\))?/drives(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/(tabs)/profile.tsx",
+      "page": "/(root)/(tabs)/profile",
+      "namedRegex": "^(?:/\\(root\\))?(?:/\\(tabs\\))?/profile(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/(driver-tabs)/profile.tsx",
+      "page": "/(root)/(driver-tabs)/profile",
+      "namedRegex": "^(?:/\\(root\\))?(?:/\\(driver\\-tabs\\))?/profile(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/privacy.tsx",
+      "page": "/(root)/privacy",
+      "namedRegex": "^(?:/\\(root\\))?/privacy(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(auth)/welcome.tsx",
+      "page": "/(auth)/welcome",
+      "namedRegex": "^(?:/\\(auth\\))?/welcome(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(auth)/sign-up.tsx",
+      "page": "/(auth)/sign-up",
+      "namedRegex": "^(?:/\\(auth\\))?/sign\\-up(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(auth)/sign-in.tsx",
+      "page": "/(auth)/sign-in",
+      "namedRegex": "^(?:/\\(auth\\))?/sign\\-in(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/(driver-tabs)/earnings.tsx",
+      "page": "/(root)/(driver-tabs)/earnings",
+      "namedRegex": "^(?:/\\(root\\))?(?:/\\(driver\\-tabs\\))?/earnings(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "expo-router/build/views/Sitemap.js",
+      "page": "/_sitemap",
+      "namedRegex": "^/_sitemap(?:/)?$",
+      "routeKeys": {},
+      "generated": true
+    },
+    {
+      "file": "./(root)/(tabs)/disposals.tsx",
+      "page": "/(root)/(tabs)/disposals",
+      "namedRegex": "^(?:/\\(root\\))?(?:/\\(tabs\\))?/disposals(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/(driver-tabs)/dashboard.tsx",
+      "page": "/(root)/(driver-tabs)/dashboard",
+      "namedRegex": "^(?:/\\(root\\))?(?:/\\(driver\\-tabs\\))?/dashboard(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(auth)/role-select.tsx",
+      "page": "/(auth)/role-select",
+      "namedRegex": "^(?:/\\(auth\\))?/role\\-select(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/bin-cleaning.tsx",
+      "page": "/(root)/bin-cleaning",
+      "namedRegex": "^(?:/\\(root\\))?/bin\\-cleaning(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(auth)/driver-login.tsx",
+      "page": "/(auth)/driver-login",
+      "namedRegex": "^(?:/\\(auth\\))?/driver\\-login(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/driver-detail.tsx",
+      "page": "/(root)/driver-detail",
+      "namedRegex": "^(?:/\\(root\\))?/driver\\-detail(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/find-collector.tsx",
+      "page": "/(root)/find-collector",
+      "namedRegex": "^(?:/\\(root\\))?/find\\-collector(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/book-collector.tsx",
+      "page": "/(root)/book-collector",
+      "namedRegex": "^(?:/\\(root\\))?/book\\-collector(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/track-collector.tsx",
+      "page": "/(root)/track-collector",
+      "namedRegex": "^(?:/\\(root\\))?/track\\-collector(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/driver-tracking.tsx",
+      "page": "/(root)/driver-tracking",
+      "namedRegex": "^(?:/\\(root\\))?/driver\\-tracking(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(auth)/driver-register.tsx",
+      "page": "/(auth)/driver-register",
+      "namedRegex": "^(?:/\\(auth\\))?/driver\\-register(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(auth)/driver-complete.tsx",
+      "page": "/(auth)/driver-complete",
+      "namedRegex": "^(?:/\\(auth\\))?/driver\\-complete(?:/)?$",
+      "routeKeys": {}
+    },
+    {
+      "file": "./(root)/confirm-collector.tsx",
+      "page": "/(root)/confirm-collector",
+      "namedRegex": "^(?:/\\(root\\))?/confirm\\-collector(?:/)?$",
+      "routeKeys": {}
+    }
+  ],
+  "notFoundRoutes": [
+    {
+      "file": "expo-router/build/views/Unmatched.js",
+      "page": "/+not-found",
+      "namedRegex": "^(?:/(?<notfound>.+?))?(?:/)?$",
+      "routeKeys": {
+        "notfound": "not-found"
+      },
+      "generated": true
+    }
+  ],
+  "redirects": [],
+  "rewrites": []
+}
