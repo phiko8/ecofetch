@@ -28,23 +28,26 @@ export const tokenCache = {
   },
 };
 
-export const googleOAuth = async (startOAuthFlow: any) => {
+export const googleOAuth = async (startOAuthFlow: any, role?: string) => {
   try {
     const { createdSessionId, setActive, signUp } = await startOAuthFlow({
-      redirectUrl: Linking.createURL("/(root)/(tabs)/home"),
+      redirectUrl: Linking.createURL("/"),
     });
 
     if (createdSessionId) {
       if (setActive) {
         await setActive({ session: createdSessionId });
 
-        if (signUp.createdUserId) {
+        // Only save to DB on first-time sign-up (not returning sign-ins)
+        if (signUp?.createdUserId) {
           await fetchAPI("/(api)/user", {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              name: `${signUp.firstName} ${signUp.lastName}`,
+              name: `${signUp.firstName ?? ""} ${signUp.lastName ?? ""}`.trim() || "User",
               email: signUp.emailAddress,
               clerkId: signUp.createdUserId,
+              role: role ?? "disposer",
             }),
           });
         }
@@ -52,6 +55,7 @@ export const googleOAuth = async (startOAuthFlow: any) => {
         return {
           success: true,
           code: "success",
+          isNewUser: !!signUp?.createdUserId,
           message: "You have successfully signed in with Google",
         };
       }
@@ -59,6 +63,8 @@ export const googleOAuth = async (startOAuthFlow: any) => {
 
     return {
       success: false,
+      code: "error",
+      isNewUser: false,
       message: "An error occurred while signing in with Google",
     };
   } catch (err: any) {
@@ -66,7 +72,8 @@ export const googleOAuth = async (startOAuthFlow: any) => {
     return {
       success: false,
       code: err.code,
-      message: err?.errors[0]?.longMessage,
+      isNewUser: false,
+      message: err?.errors?.[0]?.longMessage ?? "Google sign-in failed",
     };
   }
 };

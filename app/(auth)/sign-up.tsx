@@ -1,8 +1,9 @@
-import { Link, router } from "expo-router";
+import { Link, router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import ReactNativeModal from "react-native-modal";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 import bin2 from "@/assets/images/bin2.png";
 import check from "@/assets/images/check.png";
@@ -11,16 +12,16 @@ import CustomInput from "@/components/CustomInput";
 import OAuth from "@/components/oAuth";
 
 import { fetchAPI } from "@/lib/fetch";
-import { setActive, useSignUp } from "@clerk/clerk-expo";
+import { useSignUp } from "@clerk/clerk-expo";
 
 const SignUp = () => {
-  const { signUp, isLoaded } = useSignUp();
+  const { role } = useLocalSearchParams<{ role: string }>();
+  const { signUp, isLoaded, setActive } = useSignUp();
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [pendingVerification, setPendingVerification] = useState(false);
-
+  const [phone, setPhone] = useState("");
   const [verification, setVerification] = useState({
     state: "default", // 'default', 'pending', 'error', 'success', 'failed'
     error: "",
@@ -29,6 +30,20 @@ const SignUp = () => {
 
   const onSignUpPress = async () => {
     if (!isLoaded) return;
+
+    if (!fullName.trim()) {
+      setVerification({ state: "error", error: "Please enter your full name.", code: "" });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailAddress.trim())) {
+      setVerification({ state: "error", error: "Please enter a valid email address.", code: "" });
+      return;
+    }
+    if (password.length < 8) {
+      setVerification({ state: "error", error: "Password must be at least 8 characters.", code: "" });
+      return;
+    }
 
     try {
       await signUp.create({
@@ -46,12 +61,14 @@ const SignUp = () => {
         code: "",
       });
 
-      setPendingVerification(true);
     } catch (err: any) {
       console.error("Sign-up error: ", err);
+      const clerkErr = err?.errors?.[0];
+      const field = clerkErr?.meta?.paramName?.replace(/_/g, " ") ?? "";
+      const detail = clerkErr?.longMessage || clerkErr?.message || "";
       setVerification({
         state: "error",
-        error: err?.errors?.[0]?.message || "Sign-up failed",
+        error: detail ? (field ? `${field}: ${detail}` : detail) : "Sign-up failed",
         code: "",
       });
     }
@@ -66,17 +83,28 @@ const SignUp = () => {
       });
 
       if (completeSignUp.status === "complete") {
-        await fetchAPI("/(api)/user", {
-        method: "POST",
-        headers: {
-       "Content-Type": "application/json",
-      },
-       body: JSON.stringify({
-       name: fullName,
-       email: emailAddress,
-       clerkId: completeSignUp.createdUserId,
-       }),
-    });
+        try {
+          await fetchAPI("/(api)/user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: fullName,
+              email: emailAddress,
+              clerkId: completeSignUp.createdUserId,
+              role: role ?? "disposer",
+              phone: phone.trim() || null,
+            }),
+          });
+        } catch (apiErr) {
+          console.error("Failed to save user to DB:", apiErr);
+          setVerification((prev) => ({
+            ...prev,
+            state: "failed",
+            error:
+              "Account created but profile setup failed. Please try again or contact support.",
+          }));
+          return;
+        }
 
         await setActive({ session: completeSignUp.createdSessionId });
 
@@ -85,7 +113,7 @@ const SignUp = () => {
           state: "success",
         }));
 
-        router.replace("/home"); // You can update this route
+        router.replace("/"); // index.tsx handles role-based routing
       } else {
         setVerification((prev) => ({
           ...prev,
@@ -104,14 +132,17 @@ const SignUp = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.imageWrapper}>
           <Image source={bin2} style={styles.image} />
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={22} color="#111" />
+          </TouchableOpacity>
         </View>
-        <Text style={styles.title}>
-                    Ec<Text style={styles.green}>ho</Text> F<Text style={styles.green}>etch</Text>
-                  </Text>
-
         <Text style={styles.title}>Create an Account</Text>
 
         <View style={styles.formContainer}>
@@ -131,6 +162,14 @@ const SignUp = () => {
             onChangeText={setEmailAddress}
           />
           <CustomInput
+            label="Phone Number"
+            placeholder="e.g. 0812345678"
+            keyboardType="phone-pad"
+            icon="call-outline"
+            value={phone}
+            onChangeText={setPhone}
+          />
+          <CustomInput
             label="Password"
             placeholder="Enter your password"
             secureTextEntry
@@ -143,22 +182,7 @@ const SignUp = () => {
             <Text style={styles.errorText}>{verification.error}</Text>
           )}
 
-          <CustomButton title="Sign Up" onPress={onSignUpPress} style={styles.button} />
-
-          {pendingVerification && (
-            <>
-              <CustomInput
-                label="Verification Code"
-                placeholder="Enter code"
-                icon="lock-closed-outline"
-                value={verification.code}
-                onChangeText={(text) =>
-                  setVerification((prev) => ({ ...prev, code: text }))
-                }
-              />
-              <CustomButton title="Verify Email" onPress={onPressVerify} style={styles.button} />
-            </>
-          )}
+          <CustomButton title="Sign Up" onPress={onSignUpPress} customStyle={styles.button} />
 
           <OAuth />
 
@@ -167,12 +191,17 @@ const SignUp = () => {
             <Text style={styles.logInText}>Log In</Text>
           </Link>
 
+          <Text style={styles.termsNote}>
+            By signing up you agree to our{" "}
+            <Link href="/(root)/terms"><Text style={styles.termsLink}>Terms of Service</Text></Link>
+            {" "}and{" "}
+            <Link href="/(root)/privacy"><Text style={styles.termsLink}>Privacy Policy</Text></Link>
+          </Text>
+
           {/* Verification Pending Modal */}
           <ReactNativeModal
             isVisible={verification.state === "pending"}
-            onModalHide={() =>
-              setVerification((prev) => ({ ...prev, state: "success" }))
-            }
+            onBackdropPress={() => {}}
           >
             <View style={styles.modalContent}>
               <Text style={styles.title}>Verification</Text>
@@ -193,7 +222,7 @@ const SignUp = () => {
               <CustomButton
                 title="Verify Email"
                 onPress={onPressVerify}
-                style={{ marginTop: 20 }}
+                customStyle={{ marginTop: 20 }}
               />
             </View>
           </ReactNativeModal>
@@ -208,13 +237,14 @@ const SignUp = () => {
               </Text>
               <CustomButton
                 title="Browse Home"
-                onPress={() => router.replace("/(root)/(tabs)/home")}
-                style={{ marginTop: 20 }}
+                onPress={() => router.replace("/")}
+                customStyle={{ marginTop: 20 }}
               />
             </View>
           </ReactNativeModal>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -230,22 +260,35 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     width: "100%",
+    position: "relative",
   },
   image: {
     width: "100%",
-    height: 200,
-    resizeMode: "cover",
+    height: 130,
+    resizeMode: "contain",
+  },
+  backBtn: {
+    position: "absolute",
+    top: 14,
+    left: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(255,255,255,0.85)",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   green: {
-    color: "#4CAF50", // Stylish green
+    color: "#1AB045",
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "700",
     marginTop: 20,
     marginBottom: 10,
     textAlign: "center",
+    color: "#111",
   },
   formContainer: {
     width: "90%",
@@ -257,46 +300,59 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   linkText: {
-    fontSize: 16,
-    color: "#333",
+    fontSize: 15,
+    color: "#6B7280",
   },
   logInText: {
-    fontSize: 16,
-    color: "#007bff",
+    fontSize: 15,
+    color: "#1AB045",
+    fontWeight: "600",
   },
   button: {
     marginTop: 20,
   },
   errorText: {
-    color: "red",
+    color: "#EF4444",
     marginTop: 10,
     textAlign: "center",
+    fontSize: 13,
   },
   modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
+    backgroundColor: "#fff",
+    padding: 24,
+    borderRadius: 16,
     alignItems: "center",
-    minHeight: 300,
+    minHeight: 280,
     justifyContent: "center",
   },
   modalImage: {
-    width: 110,
-    height: 110,
-    marginBottom: 20,
+    width: 100,
+    height: 100,
+    marginBottom: 16,
     alignSelf: "center",
   },
   successText: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "green",
+    fontWeight: "700",
+    color: "#1AB045",
     textAlign: "center",
   },
   subSuccessText: {
-    color: "gray",
+    color: "#6B7280",
     textAlign: "center",
-    marginTop: 2,
+    marginTop: 4,
     fontSize: 14,
+  },
+  termsNote: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    textAlign: "center",
+    marginTop: 16,
+    lineHeight: 18,
+  },
+  termsLink: {
+    color: "#1AB045",
+    fontWeight: "600",
   },
 });
 

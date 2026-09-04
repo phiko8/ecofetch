@@ -1,4 +1,5 @@
 import CustomButton from "@/components/customButton";
+import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
 import {
@@ -10,7 +11,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Swiper from "react-native-swiper";
-import { onboarding } from "./constants/ondex"; // Replace with correct path to your onboarding data
+import { onboarding } from "@/constants";
+
+const markOnboardingDone = () =>
+  SecureStore.setItemAsync("eco_onboarding_done", "true");
 
 const Onboarding = () => {
   const swiperRef = useRef<Swiper>(null);
@@ -20,7 +24,8 @@ const Onboarding = () => {
     if (activeIndex < onboarding.length - 1) {
       swiperRef.current?.scrollBy(1);
     } else {
-      router.replace("/(auth)/sign-up");
+      markOnboardingDone();
+      router.replace("/(auth)/role-select");
     }
   };
 
@@ -35,7 +40,7 @@ const Onboarding = () => {
     >
       {/* Skip Button */}
       <TouchableOpacity
-        onPress={() => router.replace("/(auth)/sign-up")}
+        onPress={() => { markOnboardingDone(); router.replace("/(auth)/role-select"); }}
         style={{
           position: "absolute",
           top: 20,
@@ -117,7 +122,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "700",
     marginBottom: 10,
     textAlign: "center",
   },

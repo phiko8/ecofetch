@@ -1,8 +1,7 @@
 import { useOAuth } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import { Alert, Image, Text, View } from "react-native";
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import CustomButton from "@/components/customButton";
 import { icons } from "@/constants";
 import { googleOAuth } from "@/lib/auth";
 
@@ -11,15 +10,14 @@ const OAuth = () => {
 
   const handleGoogleSignIn = async () => {
     try {
-      const result = await googleOAuth(startOAuthFlow);
+      const result = await googleOAuth(startOAuthFlow, "disposer");
 
-      if (result.code === "session_exists") {
-        Alert.alert("Success", "Session exists. Redirecting to home screen.");
-        router.replace("/(root)/(tabs)/home");
-        return;
+      if (result.success) {
+        // Let index.tsx read the DB role and route correctly
+        router.replace("/");
+      } else {
+        Alert.alert("Error", result.message ?? "Google sign-in failed.");
       }
-
-      Alert.alert(result.success ? "Success" : "Error", result.message);
     } catch (error) {
       console.error("Google sign-in failed:", error);
       Alert.alert("Error", "Something went wrong during sign-in.");
@@ -28,28 +26,59 @@ const OAuth = () => {
 
   return (
     <View>
-      <View className="flex flex-row justify-center items-center mt-4 gap-x-3">
-        <View className="flex-1 h-[1px] bg-general-100" />
-        <Text className="text-lg text-gray-700">Or</Text>
-        <View className="flex-1 h-[1px] bg-general-100" />
+      {/* Divider */}
+      <View style={styles.dividerRow}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>Or</Text>
+        <View style={styles.dividerLine} />
       </View>
 
-      <CustomButton
-        title="Log In with Google"
-        className="mt-5 w-full shadow-none"
-        IconLeft={() => (
-          <Image
-            source={icons.google}
-            resizeMode="contain"
-            className="w-5 h-5 mx-2"
-          />
-        )}
-        bgVariant="outline"
-        textVariant="primary"
-        onPress={handleGoogleSignIn}
-      />
+      {/* Google button */}
+      <TouchableOpacity style={styles.googleBtn} onPress={handleGoogleSignIn} activeOpacity={0.8}>
+        <Image source={icons.google} style={styles.googleIcon} resizeMode="contain" />
+        <Text style={styles.googleBtnText}>Continue with Google</Text>
+      </TouchableOpacity>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E5E7EB",
+  },
+  dividerText: {
+    fontSize: 15,
+    color: "#6B7280",
+  },
+  googleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#E5E7EB",
+    borderRadius: 10,
+    paddingVertical: 12,
+    marginTop: 16,
+    backgroundColor: "#fff",
+    gap: 10,
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
+  },
+  googleBtnText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#111",
+  },
+});
 
 export default OAuth;

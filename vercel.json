@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npx expo export --platform web",
+  "outputDirectory": "dist/client",
+  "rewrites": [{ "source": "/(.*)", "destination": "/api/expo-server" }],
+  "framework": null,
+  "functions": {
+    "api/expo-server.js": {
+      "includeFiles": "dist/server/**"
+    }
+  }
+}

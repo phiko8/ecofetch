@@ -1,13 +1,9 @@
 import { Disposal } from "@/types/type";
 
 export const sortRides = (disposals: Disposal[]): Disposal[] => {
-    const result = disposals.sort((a, b) => {
-        const dateA = new Date(`${a.created_at}T${a.ride_time}`);
-        const dateB = new Date(`${b.created_at}T${b.ride_time}`);
-        return dateB.getTime() - dateA.getTime();
+    return disposals.sort((a, b) => {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-
-    return result.reverse();
 };
 
 export function formatTime(minutes: number): string {

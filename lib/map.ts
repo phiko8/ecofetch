@@ -7,19 +7,26 @@ export const generateMarkersFromData = ({
   userLatitude,
   userLongitude,
 }: {
-  data: Driver[];
+  data: (Driver & { area_latitude?: number | null; area_longitude?: number | null; name?: string })[];
   userLatitude: number;
   userLongitude: number;
 }): MarkerData[] => {
   return data.map((driver) => {
-    const latOffset = (Math.random() - 0.5) * 0.01; // Random offset between -0.005 and 0.005
-    const lngOffset = (Math.random() - 0.5) * 0.01; // Random offset between -0.005 and 0.005
+    // Use real area coordinates if available, otherwise place near user
+    const latitude = driver.area_latitude ?? userLatitude + (Math.random() - 0.5) * 0.01;
+    const longitude = driver.area_longitude ?? userLongitude + (Math.random() - 0.5) * 0.01;
+
+    // Support both split (first_name/last_name) and combined (name) formats
+    const firstName = driver.first_name ?? driver.name?.split(" ")[0] ?? "Driver";
+    const lastName = driver.last_name ?? driver.name?.split(" ").slice(1).join(" ") ?? "";
 
     return {
-      latitude: userLatitude + latOffset,
-      longitude: userLongitude + lngOffset,
-      title: `${driver.first_name} ${driver.last_name}`,
       ...driver,
+      latitude,
+      longitude,
+      title: `${firstName} ${lastName}`.trim(),
+      first_name: firstName,
+      last_name: lastName,
     };
   });
 };
@@ -37,8 +44,8 @@ export const calculateRegion = ({
 }) => {
   if (!userLatitude || !userLongitude) {
     return {
-      latitude: 37.78825,
-      longitude: -122.4324,
+      latitude: -26.2041,
+      longitude: 28.0473,
       latitudeDelta: 0.01,
       longitudeDelta: 0.01,
     };

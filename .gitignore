@@ -53,3 +53,4 @@ expo-env.d.ts
 
 # env
 .env
+.vercel

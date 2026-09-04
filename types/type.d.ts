@@ -1,24 +1,5 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
 
-import { ImageSourcePropType } from "react-native";
-
-declare interface GoogleInputProps {
-  icon?: ImageSourcePropType;
-  initialLocation?: string;
-  containerStyle?: any;
-  textInputBackgroundColor?: string;
-  handlePress: ({
-    latitude,
-    longitude,
-    address,
-  }: {
-    latitude: number;
-    longitude: number;
-    address: string;
-  }) => void;
-}
-
-
 declare interface Driver {
     driver_id: number;
     first_name: string;
@@ -54,30 +35,6 @@ declare interface MapProps {
     onMapReady?: () => void;
 }
 
-declare interface Driver {
-    first_name: any;
-    origin_address: string;
-    destination_address: string;
-    origin_latitude: number;
-    origin_longitude: number;
-    destination_latitude: number;
-    destination_longitude: number;
-    ride_time: number;
-    fare_price: number;
-    payment_status: string;
-    driver_id: number;
-    user_email: string;
-    created_at: string;
-    driver: {
-        image_url: string | undefined;
-        car_type: any;
-        rating: ReactNode;
-        profile_image_url: string | undefined;
-        first_name: string;
-        last_name: string;
-        car_type: string;
-    };
-}
 
 declare interface ButtonProps extends TouchableOpacityProps {
     title: string;
@@ -163,4 +120,77 @@ declare interface DriverCardProps {
     selected: number;
     setSelected: () => void;
     style?: any;
+}
+
+declare interface Disposal {
+    ride_id: number;
+    origin_address: string;
+    destination_address: string;
+    origin_latitude: number;
+    origin_longitude: number;
+    destination_latitude: number;
+    destination_longitude: number;
+    ride_time: number;
+    fare_price: number;
+    payment_status: string;
+    created_at: string;
+    rating: number | null;
+    driver: {
+        driver_id: number;
+        first_name: string;
+        last_name: string | null;
+        image_url: string | null;
+        car_type: string;
+        number_plate: string;
+        phone: string;
+    };
+}
+
+declare interface Drive {
+    id: number;
+    title: string;
+    area: string;
+    date: string;
+    vehicle_type: string;
+    total_slots: number;
+    available_slots: number;
+    price: number;
+    status: "available" | "full" | "completed" | "cancelled";
+    created_at: string;
+}
+
+declare interface UserRegistration {
+    id: number;
+    name: string;
+    email: string;
+    clerk_id: string;
+    role: string;
+    id_number: string;
+    status: "pending" | "approved" | "rejected" | "banned";
+    created_at: string;
+    phone: string;
+    vehicle_type: string;
+    license_number: string;
+    number_plate: string;
+}
+
+declare interface BinCleaningPriceBreakdown {
+    landfillFees: number;
+    fuelCost: number;
+    labour: number;
+    serviceProvider: number;
+    baseSubtotal: number;
+    locationSurcharge: number;
+    wasteMgmtFee: number;
+    total: number;
+}
+
+declare interface BinCleaningBooking {
+    wasteType: string;
+    weightTons: number;
+    isLocationAccessible: boolean;
+    fuelType: string;
+    fuelLocation: "coastal" | "inland";
+    distanceKm: number;
+    breakdown: BinCleaningPriceBreakdown;
 }

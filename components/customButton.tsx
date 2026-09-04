@@ -1,3 +1,4 @@
+import { ms, scale, vs } from "@/lib/responsive";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -9,15 +10,20 @@ const CustomButton = ({
   IconLeft,
   IconRight,
   customStyle,
+  style,
+  disabled,
 }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.button, styles[bgVariant], customStyle]}
+      disabled={disabled}
+      style={[styles.button, styles[bgVariant], customStyle, style]}
     >
       <View style={styles.content}>
         {IconLeft && <View style={styles.icon}>{IconLeft}</View>}
-        <Text style={[styles.text, styles[textVariant]]}>{title}</Text>
+        <Text style={[styles.text, styles[textVariant]]} allowFontScaling={false}>
+          {title}
+        </Text>
         {IconRight && <View style={styles.icon}>{IconRight}</View>}
       </View>
     </TouchableOpacity>
@@ -26,48 +32,51 @@ const CustomButton = ({
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 20,
+    paddingVertical: vs(13),
+    paddingHorizontal: scale(20),
+    borderRadius: scale(20),
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1, // Border for outline buttons
+    borderWidth: 1,
   },
   primary: {
-    backgroundColor: "#1AB045", // Green for primary button
+    backgroundColor: "#1AB045",
+    borderColor: "#1AB045",
   },
   secondary: {
-    backgroundColor: "#6c757d", // Gray for secondary button
+    backgroundColor: "#6c757d",
+    borderColor: "#6c757d",
   },
   outline: {
-    backgroundColor: "transparent", // Transparent for outline button
-    borderColor: "#1AB045", // Green border for outline button
+    backgroundColor: "transparent",
+    borderColor: "#1AB045",
   },
   smokewhite: {
-    backgroundColor: "#F4F4F4", // Light smokey white color
-    borderColor: "#ccc", // Border color to match smokewhite theme
+    backgroundColor: "#F4F4F4",
+    borderColor: "#ccc",
   },
   content: {
     flexDirection: "row",
     alignItems: "center",
   },
   text: {
-    fontSize: 15,
+    fontSize: ms(15),
+    fontWeight: "600",
   },
   default: {
-    color: "#fff", // Default text color (white)
+    color: "#fff",
   },
   muted: {
-    color: "#ccc", // Muted text color (gray)
+    color: "#ccc",
   },
   primaryText: {
-    color: "#1AB045", // Green text for primary button
+    color: "#1AB045",
   },
   smokewhiteText: {
-    color: "#333", // Dark text for smokewhite button for better contrast
+    color: "#333",
   },
   icon: {
-    marginHorizontal: 5,
+    marginHorizontal: scale(5),
   },
 });
 

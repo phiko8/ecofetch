@@ -23,19 +23,29 @@ import selectedMarker from "@/assets/icons/selected-marker.png";
 import star from "@/assets/icons/star.png";
 import target from "@/assets/icons/target.png";
 import to from "@/assets/icons/to.png";
+
+import bin2 from "@/assets/images/bin2.png";
 import check from "@/assets/images/check.png";
+import favicon from "@/assets/images/favicon.png";
+import icon from "@/assets/images/icon.png";
 import message from "@/assets/images/message.png";
 import noResult from "@/assets/images/noResult.png";
+import serviceDisposal from "@/assets/images/service-disposal.png";
+import serviceRecycling from "@/assets/images/service-recycling.png";
+import serviceCleaning from "@/assets/images/service-cleaning.png";
 
+export * from "./colors";
 
 export const images = {
-
- noResult,
-
-
+  bin2,
   check,
-
+  favicon,
+  icon,
   message,
+  noResult,
+  serviceDisposal,
+  serviceRecycling,
+  serviceCleaning,
 };
 
 export const icons = {
@@ -69,27 +79,23 @@ export const icons = {
 export const onboarding = [
   {
     id: 1,
-    title: "The perfect ride is just a tap away!",
+    title: "Easily dispose of your waste with just a few taps",
     description:
-      "Your journey begins with Ryde. Find your ideal ride effortlessly.",
-    image: images.onboarding1,
+      "Book a trusted waste collector near you and keep your space clean",
+    image: bin2,
   },
   {
     id: 2,
-    title: "Best car in your hands with Ryde",
+    title: "Quick and simple pickups",
     description:
-      "Discover the convenience of finding your perfect ride with Ryde",
-    image: images.onboarding2,
+      "Request a waste collection anytime and track when it's picked up — all from your phone.",
+    image: favicon,
   },
   {
     id: 3,
-    title: "Your ride, your way. Let's go!",
+    title: "Keep your home and community clean",
     description:
-      "Enter your destination, sit back, and let us take care of the rest.",
-    image: images.onboarding3,
+      "Dispose of waste the right way and play your part in protecting the environment.",
+    image: icon,
   },
 ];
-
-export const data = {
-  onboarding,
-};
