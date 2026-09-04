@@ -3,6 +3,12 @@ const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
+// Exclude @emnapi (wasm/wasi native bindings used by sharp) from Metro watching —
+// these packages have missing dist dirs that crash the file watcher on Windows.
+config.resolver.blockList = [
+  /node_modules\/@emnapi\/.*/,
+];
+
 // Packages that use native C++/Java code and cannot run on web or in the
 // server-side static renderer.  Swap them for empty stubs on web so the
 // Expo export build succeeds (the mobile app still uses the real packages).
