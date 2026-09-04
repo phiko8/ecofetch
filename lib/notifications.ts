@@ -1,21 +1,29 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 import { fetchAPI } from "./fetch";
 
+// expo-notifications remote push is not available in Expo Go (SDK 53+).
+// Skip all setup when running inside Expo Go to avoid a fatal crash.
+const IN_EXPO_GO = Constants.appOwnership === "expo";
+
 // How notifications behave while the app is in the foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+if (!IN_EXPO_GO) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+}
 
 /**
  * Request permission, get the Expo push token, and save it to the driver's DB record.
  * Call this once when the driver opens the dashboard.
  */
 export async function registerDriverPushToken(clerkId: string): Promise<void> {
+  if (IN_EXPO_GO) return; // not supported in Expo Go
   try {
     // Android requires a notification channel
     if (Platform.OS === "android") {
