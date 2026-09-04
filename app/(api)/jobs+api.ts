@@ -189,7 +189,12 @@ export async function POST(request: Request) {
       wastePhoto,
     } = body;
 
+    // Log exactly what was received so Vercel Function Logs can show the diagnosis
+    console.log("[jobs POST] body keys:", Object.keys(body));
+    console.log("[jobs POST] userClerkId:", userClerkId, "| purpose:", purpose, "| wasteType:", wasteType, "| offeredPrice:", offeredPriceParam, "| paymentMethod:", paymentMethod);
+
     if (!userClerkId) {
+      console.error("[jobs POST] BLOCKED — userClerkId missing. body.userClerkId =", body.userClerkId);
       return Response.json({ error: "Missing user session — please sign in again" }, { status: 400 });
     }
     // originAddress is optional — client sends GPS coords as fallback text, so we never hard-block here
@@ -235,7 +240,9 @@ export async function POST(request: Request) {
 
     // Enforce floor only when a meaningful fare was calculated and the user
     // submitted an explicit offer below it.
+    console.log("[jobs POST] fare:", fare, "| floorPrice:", floorPrice, "| offeredPrice:", offeredPrice, "| rawOffered:", rawOffered);
     if (fare > 0 && rawOffered != null && rawOffered > 0 && offeredPrice < floorPrice) {
+      console.error("[jobs POST] BLOCKED — offer R" + offeredPrice + " below floor R" + floorPrice);
       return Response.json(
         { error: `Minimum offer is R${floorPrice.toFixed(2)}` },
         { status: 400 }
