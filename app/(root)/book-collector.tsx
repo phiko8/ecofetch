@@ -119,12 +119,19 @@ const BookCollector = () => {
       const MAX_PHOTO_LEN = 2_500_000; // ~1.9 MB binary
       const photoToSend = wastePhoto && wastePhoto.length <= MAX_PHOTO_LEN ? wastePhoto : null;
 
+      // Build a fallback address from GPS coordinates if reverse-geocoding didn't resolve
+      const pickupAddress =
+        userAddress ||
+        (userLatitude && userLongitude
+          ? `${userLatitude.toFixed(5)}, ${userLongitude.toFixed(5)}`
+          : "Pickup location");
+
       const commonFields = {
         driverDbId:          isBroadcast ? null : Number(driver_id),
         userClerkId:         resolvedUserId,
         userName:            user?.fullName || user?.firstName ||
                              user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "",
-        originAddress:       userAddress || "Unknown pickup",   // || not ?? so empty string is caught
+        originAddress:       pickupAddress,
         destinationAddress:  destinationAddress || null,
         originLatitude:      userLatitude,
         originLongitude:     userLongitude,

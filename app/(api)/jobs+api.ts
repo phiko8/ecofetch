@@ -192,9 +192,7 @@ export async function POST(request: Request) {
     if (!userClerkId) {
       return Response.json({ error: "Missing user session — please sign in again" }, { status: 400 });
     }
-    if (!originAddress) {
-      return Response.json({ error: "Missing pickup address — please set your location" }, { status: 400 });
-    }
+    // originAddress is optional — client sends GPS coords as fallback text, so we never hard-block here
     if (paymentMethod && !["cash", "card"].includes(paymentMethod)) {
       return Response.json({ error: "Invalid payment method" }, { status: 400 });
     }
@@ -284,7 +282,7 @@ export async function POST(request: Request) {
         NULL,
         ${userClerkId},
         ${userName ?? null},
-        ${originAddress},
+        ${originAddress || (originLatitude && originLongitude ? `${Number(originLatitude).toFixed(5)}, ${Number(originLongitude).toFixed(5)}` : "Unknown")},
         ${destinationAddress ?? null},
         ${originLatitude ?? null},
         ${originLongitude ?? null},
