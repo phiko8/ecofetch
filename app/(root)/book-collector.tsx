@@ -1,7 +1,7 @@
 import CollectorLayout from "@/components/CollectorLayout";
 import CustomButton from "@/components/customButton";
-import { fetchAPI } from "@/lib/fetch";
 import { useBookingStore, useLocationStore } from "@/store";
+import { neon } from "@neondatabase/serverless";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -106,7 +106,6 @@ const BookCollector = () => {
       if (err) { setCardError(err); return; }
       setCardError("");
     }
-    // Guard: Clerk userId can briefly be null during token refresh in production
     const resolvedUserId = userId || user?.id;
     if (!resolvedUserId) {
       setCardError("Session error — please close and reopen the app.");
@@ -115,66 +114,99 @@ const BookCollector = () => {
 
     setLoading(true);
     try {
-      // Omit wastePhoto if it's too large to avoid exceeding Vercel's 4.5 MB body limit
-      const MAX_PHOTO_LEN = 2_500_000; // ~1.9 MB binary
+      const MAX_PHOTO_LEN = 2_500_000;
       const photoToSend = wastePhoto && wastePhoto.length <= MAX_PHOTO_LEN ? wastePhoto : null;
 
-      // Build a fallback address from GPS coordinates if reverse-geocoding didn't resolve
       const pickupAddress =
         userAddress ||
         (userLatitude && userLongitude
           ? `${userLatitude.toFixed(5)}, ${userLongitude.toFixed(5)}`
           : "Pickup location");
 
-      const commonFields = {
-        driverDbId:          isBroadcast ? null : Number(driver_id),
-        userClerkId:         resolvedUserId,
-        userName:            user?.fullName || user?.firstName ||
-                             user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "",
-        originAddress:       pickupAddress,
-        destinationAddress:  destinationAddress || null,
-        originLatitude:      userLatitude,
-        originLongitude:     userLongitude,
-        destinationLatitude,
-        destinationLongitude,
-        paymentMethod,
-        wastePhoto:          photoToSend,
-      };
+      const uName =
+        user?.fullName || user?.firstName ||
+        user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "";
 
-      const res = await fetchAPI("/(api)/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...commonFields,
-          purpose:     purpose ?? "dispose",
-          binsCount:   bins_count ? Number(bins_count) : null,
-          wasteType:   waste_type ?? null,
-          weightTons:  weight_tons ? Number(weight_tons) : null,
-          offeredPrice: offeredPriceNum,
-        }),
-      });
-      const newRideId = res?.data?.ride_id ?? null;
+      const jobPurpose = (purpose as string) ?? "dispose";
+      const floorMin   = jobPurpose === "bin_cleaning" ? 100 : jobPurpose === "recycle" ? 150 : 200;
+      const floorPrice = baseFare > 0
+        ? Math.max(Math.round(baseFare * 0.70 * 100) / 100, floorMin)
+        : floorMin;
 
-      // Fire extra service jobs (broadcast, no pre-calculated fare)
+      // Write directly to Neon — no server needed
+      const sql = neon(process.env.EXPO_PUBLIC_DATABASE_URL!);
+
+      const [ride] = await sql`
+        INSERT INTO rides (
+          driver_id, user_id, user_name,
+          origin_address, destination_address,
+          origin_latitude, origin_longitude,
+          destination_latitude, destination_longitude,
+          fare_price, purpose,
+          offered_price, floor_price,
+          negotiation_status, offer_expires_at,
+          status, payment_status, waste_photo
+        )
+        VALUES (
+          NULL,
+          ${resolvedUserId},
+          ${uName || null},
+          ${pickupAddress},
+          ${destinationAddress || null},
+          ${userLatitude ?? null},
+          ${userLongitude ?? null},
+          ${destinationLatitude ?? null},
+          ${destinationLongitude ?? null},
+          ${offeredPriceNum},
+          ${jobPurpose},
+          ${offeredPriceNum},
+          ${floorPrice},
+          'open',
+          NOW() + INTERVAL '3 minutes',
+          'pending',
+          'unpaid',
+          ${photoToSend}
+        )
+        RETURNING ride_id
+      `;
+
+      const newRideId = ride?.ride_id ?? null;
+
+      // Fire-and-forget extra service jobs
       if (extraPurposesList.length > 0) {
-        await Promise.all(
-          extraPurposesList.map((ep) =>
-            fetchAPI("/(api)/jobs", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ...commonFields,
-                driverDbId:   null, // always broadcast for extras
-                purpose:      ep,
-                binsCount:    ep === "bin_cleaning" ? extraBinsCount : null,
-                wasteType:    null,
-                weightTons:   null,
-                offeredPrice: 0,
-              }),
-            }).catch(() => null) // don't fail primary booking if an extra fails
-          )
-        );
+        Promise.all(
+          extraPurposesList.map((ep) => {
+            const epFloor = ep === "bin_cleaning" ? 100 : ep === "recycle" ? 150 : 200;
+            return sql`
+              INSERT INTO rides (
+                driver_id, user_id, user_name,
+                origin_address, destination_address,
+                origin_latitude, origin_longitude,
+                destination_latitude, destination_longitude,
+                fare_price, purpose,
+                offered_price, floor_price,
+                negotiation_status, offer_expires_at,
+                status, payment_status, waste_photo
+              )
+              VALUES (
+                NULL,
+                ${resolvedUserId},
+                ${uName || null},
+                ${pickupAddress},
+                ${destinationAddress || null},
+                ${userLatitude ?? null},
+                ${userLongitude ?? null},
+                ${destinationLatitude ?? null},
+                ${destinationLongitude ?? null},
+                0, ${ep}, 0, ${epFloor},
+                'open', NOW() + INTERVAL '3 minutes',
+                'pending', 'unpaid', NULL
+              )
+            `.catch(() => null);
+          })
+        ).catch(() => null);
       }
+
       setPaymentVisible(false);
       router.replace({
         pathname: "/(root)/track-collector",
@@ -185,21 +217,7 @@ const BookCollector = () => {
         },
       });
     } catch (err: any) {
-      const msg = (err?.message ?? "") as string;
-      if (msg.includes("409") || msg.toLowerCase().includes("no collectors")) {
-        setCardError("No collectors available right now. Please try again later.");
-      } else if (
-        msg.startsWith("HTTP error") ||
-        msg.toLowerCase().includes("network") ||
-        msg.toLowerCase().includes("failed to fetch")
-      ) {
-        setCardError("Connection error. Check your internet and try again.");
-      } else if (msg) {
-        // Real API error message (e.g. "Minimum offer is R200.00")
-        setCardError(msg);
-      } else {
-        setCardError("Booking failed. Please try again.");
-      }
+      setCardError("Booking failed. Check your internet and try again.");
     } finally {
       setLoading(false);
     }

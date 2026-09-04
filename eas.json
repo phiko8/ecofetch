@@ -20,7 +20,8 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_SERVER_URL": "https://ecofetch.vercel.app"
+        "EXPO_PUBLIC_SERVER_URL": "https://ecofetch.vercel.app",
+        "EXPO_PUBLIC_DATABASE_URL": "postgresql://neondb_owner:npg_6x4SdIFTyqiw@ep-purple-rice-a53v5hxl-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require"
       }
     }
   },
