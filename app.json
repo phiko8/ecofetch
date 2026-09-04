@@ -82,7 +82,7 @@
           "locationAlwaysAndWhenInUsePermission": "Eco Fetch needs your location to find nearby collectors."
         }
       ],
-      "@stripe/stripe-react-native",
+      ["@stripe/stripe-react-native", { "merchantIdentifier": "" }],
       "expo-font",
       "expo-image",
       "expo-secure-store",
